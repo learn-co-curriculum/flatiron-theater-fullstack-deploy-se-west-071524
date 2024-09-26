@@ -13,7 +13,7 @@
 # `honcho start -f Procfile.dev`
 
 from config import api, app
-from flask import Flask, abort, jsonify, make_response, request, session
+from flask import Flask, abort, make_response, render_template, request, session
 
 # from flask_cors import CORS
 from flask_restful import Resource
@@ -29,11 +29,25 @@ from werkzeug.exceptions import NotFound, Unauthorized
 # the following adds route-specific authorization
 @app.before_request
 def check_if_logged_in():
-    open_access_list = ["signup", "login", "logout", "authorized", "productions"]
+    open_access_list = [
+        "signup",
+        "login",
+        "logout",
+        "authorized",
+        "productions",
+        "index",
+        "static",
+    ]
 
     # if the user is in session OR the request endpoint is open-access, the request will be processed as usual
     if request.endpoint not in open_access_list and not session.get("user_id"):
         raise Unauthorized
+
+
+@app.route("/")
+@app.route("/<int:id>")
+def index(id=0):
+    return render_template("index.html")
 
 
 class Productions(Resource):
@@ -221,6 +235,11 @@ def handle_unauthorized(e):
     return make_response(
         {"message": "Unauthorized: you must be logged in to make that request."}, 401
     )
+
+
+# @app.errorhandler(404)
+# def not_found(e):
+#     return render_template("index.html")
 
 
 if __name__ == "__main__":
